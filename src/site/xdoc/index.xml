@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+    <properties>
+        <title>Plugin rest-healthcheck</title>
+    </properties>
+    <head>
+        <!-- Keywords example : "cms, authentication, cms, workflow, seo, collaborative, ..." 
+             Use the language of this xdoc -->
+        <meta name="keywords" content="" />
+    </head>
+    <body>
+        <section name="Plugin rest-healthcheck">
+            <!--
+            <p>
+                <img src="images/rest-healthcheck.png" />
+            </p>
+            -->
+			<subsection name="Introduction">
+                 <p>This plugin allows you to set up an application Healthcheck REST service. </p>
+                 
+                <p>This healthcheck service implements  eclipse / microprofile-health API.</p>
+                 <p>Several types of checks can be performed</p>
+             </subsection>
+             <subsection name="Configuration">
+                 <p>HealCheck classes must implement the I(...)HealthCheck interfaces, and
+                 must be injected into the context.</p>
+                  <p>Some HealthCheck implementations are provided : </p>
+                <ul>
+                	<li>Database access </li>
+                	<li>Forced state for the instance stored in the DATASTORE table. 
+                	The key corresponds to the instance name + ".health" 
+                	(instance name is set with the lutece.webapp.instance property).
+                	 Value must be "UP" (or missing) or "Down".</li>
+                	<li>CPU Usage</li>
+                	<li>Memory usage</li>
+                </ul>
+             </subsection>
+             <subsection name="Usage">
+                 <p>Enable plugin-rest and module rest-healthcheck.</p>
+                 <p>The healthcheck url will be : </p>
+                 <p>http://[domain]/[webapp]/rest/healthcheck/api/v1/health</p>
+                 <p>The returned result will have a status of 200 (OK) or 503 (service unavailable)
+                 if at least one test fails.</p>
+                 
+                <p>Ex : {"result":[{"name":"DB.Healthcheck","message":"SELECT 1","status":"UP"}],"status":"OK"}</p>
+                <p>To check only @readiness HealthChecks: /rest/healthcheck/api/v1/health/ready</p>
+                <p>To check only @liveness HealthChecks: /rest/healthcheck/api/v1/health/live</p>
+           
+             </subsection>
+        </section>
+    </body>
+</document>
+

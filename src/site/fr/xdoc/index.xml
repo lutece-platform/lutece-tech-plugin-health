@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+    <properties>
+        <title>Plugin rest-healthcheck</title>
+    </properties>
+    <head>
+        <!-- Keywords example : "cms, authentication, cms, workflow, seo, collaborative, ..." 
+             Use the language of this xdoc -->
+        <meta name="keywords" content="" />
+    </head>
+    <body>
+        <section name="Plugin rest-healthcheck">
+            <!--
+            <p>
+                <img src="images/rest-healthcheck.png" />
+            </p>
+            -->
+            <subsection name="Introduction">
+                <p>Ce plugin permet de mettre en place un service REST de Healthcheck applicatif. </p>
+                <p>Ce service de healthcheck implémente les API du projet  eclipse / microprofile-health</p>
+                <p>Plusieurs types de vérifications peuvent être effectuées. </p>
+            </subsection>
+            <subsection name="Configuration">
+                <p>Les classes de HealCheck doivent implémenter l'interface "IHealthCheck", et 
+                doivent être injectées dans la contexte.</p>
+                <p>Plusieurs implémentations sont proposées par défaut : </p>
+                <ul>
+                	<li>test d'accès à la base de données </li>
+                	<li>test d'état forcé de l'instance (UP ou DOWN) stocké dans la table DATASTORE.
+                	La clé correspond au nom de l'instance  + ".health" 
+                	(le nom de l'instance est défini par la propriété lutece.webapp.instance).
+                	 La valeur doit être  "UP" (ou manquante) ou "Down".</li>
+                	<li>CPU Usage</li>
+                	<li>Memory usage</li>
+                </ul>
+            </subsection>
+            <subsection name="Usage">
+                <p>Activer le plugin-rest et le module rest-healthcheck.</p>
+                <p>L'url de healthcheck sera de la forme : </p>
+                <p>http://[domain]/[webapp]/rest/healthcheck/api/v1/health</p>
+                <p>Le résultat renvoyé aura un statut 200 (OK) ou 503 (service unavailable) 
+                si l'un des tests est en échec.</p>
+                <p>Exemple : {"result":[{"name":"DB.Healthcheck","message":"SELECT 1","status":"UP"}],"status":"OK"}</p>
+                <p>@readiness HealthChecks: /rest/healthcheck/api/v1/health/ready</p>
+                <p>@liveness HealthChecks: /rest/healthcheck/api/v1/health/live</p>
+            </subsection>
+        </section>
+    </body>
+</document>
+
