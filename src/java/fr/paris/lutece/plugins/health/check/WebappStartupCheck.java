@@ -50,7 +50,7 @@ import fr.paris.lutece.portal.service.init.AppInit;
 @ApplicationScoped
 public class WebappStartupCheck implements HealthCheck
 {
-    private static final String HEALTHCHECK_NAME = "webapp";
+    private static final String HEALTHCHECK_NAME = "webappSuccessfullyLoaded-startup";
 
     @Override
     public HealthCheckResponse call( )

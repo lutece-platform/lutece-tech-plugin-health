@@ -1,1 +1,24 @@
+# Build
 /target/
+
+# IDE - Eclipse
+.classpath
+.project
+.factorypath
+.settings/
+
+# IDE - IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# IDE - VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/
