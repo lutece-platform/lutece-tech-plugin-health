@@ -59,7 +59,7 @@ class TestBusinessTest
         HealthCheckResponse response = check.call( );
 
         assertNotNull( response );
-        assertEquals( "webapp", response.getName( ) );
+        assertEquals( "webappSuccessfullyLoaded-startup", response.getName( ) );
     }
 
     @Test
