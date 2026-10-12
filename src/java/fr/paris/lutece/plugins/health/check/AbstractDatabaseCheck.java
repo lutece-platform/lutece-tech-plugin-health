@@ -48,17 +48,15 @@ import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 
-import fr.paris.lutece.portal.service.plugin.PluginService;
 import fr.paris.lutece.util.sql.DAOUtil;
 
 /**
  * Base class for database health checks.
- * Executes a validation query with a configurable timeout and reports connectivity and response time.
+ * Executes a validation query on the default connection pool with a configurable timeout and reports connectivity
+ * and response time.
  */
 abstract class AbstractDatabaseCheck implements HealthCheck
 {
-    private static final String PLUGIN_NAME = "rest-healthcheck";
-
     @Inject
     @ConfigProperty( name = "portal.checkvalidconnectionsql", defaultValue = "SELECT 1" )
     private String _strValidationQuery;
@@ -78,7 +76,7 @@ abstract class AbstractDatabaseCheck implements HealthCheck
 
         ExecutorService executor = Executors.newSingleThreadExecutor( );
         Future<Boolean> future = executor.submit( ( ) -> {
-            try ( DAOUtil daoUtil = new DAOUtil( _strValidationQuery, PluginService.getPlugin( PLUGIN_NAME ) ) )
+            try ( DAOUtil daoUtil = new DAOUtil( _strValidationQuery ) )
             {
                 daoUtil.executeQuery( );
                 return daoUtil.next( );
