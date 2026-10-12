@@ -38,9 +38,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -57,6 +61,9 @@ import fr.paris.lutece.util.sql.DAOUtil;
  */
 abstract class AbstractDatabaseCheck implements HealthCheck
 {
+    private static final String THREAD_NAME_PREFIX = "health-database-check-";
+    private static final AtomicInteger THREAD_COUNT = new AtomicInteger( );
+
     @Inject
     @ConfigProperty( name = "portal.checkvalidconnectionsql", defaultValue = "SELECT 1" )
     private String _strValidationQuery;
@@ -65,7 +72,46 @@ abstract class AbstractDatabaseCheck implements HealthCheck
     @ConfigProperty( name = "healthcheck.database.timeoutMs", defaultValue = "5000" )
     private long _lTimeoutMs;
 
+    // Runs the validation query under a timeout. Cached pool: an idle thread is reused by the next probe, and a query
+    // hung past the timeout does not block the next probes, which get another thread
+    private ExecutorService _executor;
+
     protected abstract String getCheckName( );
+
+    /**
+     * Creates the pool of the validation queries
+     */
+    @PostConstruct
+    void init( )
+    {
+        _executor = Executors.newCachedThreadPool( runnable -> {
+            Thread thread = new Thread( runnable, THREAD_NAME_PREFIX + THREAD_COUNT.incrementAndGet( ) );
+            thread.setDaemon( true );
+            return thread;
+        } );
+    }
+
+    /**
+     * Stops the pool of the validation queries
+     */
+    @PreDestroy
+    void shutdown( )
+    {
+        if ( _executor != null )
+        {
+            _executor.shutdownNow( );
+        }
+    }
+
+    /**
+     * Gets the pool of the validation queries
+     *
+     * @return the pool, null before {@link #init( )}
+     */
+    ExecutorService getExecutor( )
+    {
+        return _executor;
+    }
 
     @Override
     public HealthCheckResponse call( )
@@ -74,14 +120,22 @@ abstract class AbstractDatabaseCheck implements HealthCheck
 
         long start = System.nanoTime( );
 
-        ExecutorService executor = Executors.newSingleThreadExecutor( );
-        Future<Boolean> future = executor.submit( ( ) -> {
-            try ( DAOUtil daoUtil = new DAOUtil( _strValidationQuery ) )
-            {
-                daoUtil.executeQuery( );
-                return daoUtil.next( );
-            }
-        } );
+        Future<Boolean> future;
+        try
+        {
+            future = _executor.submit( ( ) -> {
+                try ( DAOUtil daoUtil = new DAOUtil( _strValidationQuery ) )
+                {
+                    daoUtil.executeQuery( );
+                    return daoUtil.next( );
+                }
+            } );
+        }
+        catch( RejectedExecutionException e )
+        {
+            // Bean being destroyed: the instance is stopping
+            return builder.down( ).withData( "error", "Health check stopped" ).build( );
+        }
 
         try
         {
@@ -123,10 +177,6 @@ abstract class AbstractDatabaseCheck implements HealthCheck
             return builder.down( )
                           .withData( "error", "Health check interrupted" )
                           .build( );
-        }
-        finally
-        {
-            executor.shutdownNow( );
         }
     }
 }
