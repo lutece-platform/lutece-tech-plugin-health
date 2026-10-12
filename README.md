@@ -11,7 +11,7 @@ Provides CDI-based health checks discovered automatically by the MicroProfile He
 | Check | Annotation | Endpoint | Description |
 |-------|-----------|----------|-------------|
 | `DatabaseReadinessCheck` | `@Readiness` | `/health/ready` | Validates database connectivity before accepting traffic |
-| `DatabaseLivenessCheck` | `@Liveness` | `/health/live` | Validates database connectivity at runtime |
+| `ApplicationLivenessCheck` | `@Liveness` | `/health/live` | Webapp loaded and no thread in deadlock; independent of the database, so that an unavailable database does not restart every instance |
 | `WebappStartupCheck` | `@Startup` | `/health/started` | Checks `AppInit.isWebappSuccessfullyLoaded()` once at boot |
 
 ## Configuration
@@ -82,6 +82,6 @@ src/java/fr/paris/lutece/plugins/health/
   check/
     AbstractDatabaseCheck.java      -- Shared DB check logic with timeout
     DatabaseReadinessCheck.java     -- @Readiness
-    DatabaseLivenessCheck.java      -- @Liveness
+    ApplicationLivenessCheck.java   -- @Liveness (webapp loaded, no deadlock)
     WebappStartupCheck.java         -- @Startup
 ```

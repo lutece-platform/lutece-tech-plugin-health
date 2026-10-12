@@ -11,7 +11,7 @@ Fournit des health checks CDI d couverts automatiquement par le runtime MicroPro
 | Check | Annotation | Endpoint | Description |
 |-------|-----------|----------|-------------|
 | `DatabaseReadinessCheck` | `@Readiness` | `/health/ready` | V rifie la connectivit  BDD avant d'accepter du trafic |
-| `DatabaseLivenessCheck` | `@Liveness` | `/health/live` | V rifie la connectivit  BDD en cours de fonctionnement |
+| `ApplicationLivenessCheck` | `@Liveness` | `/health/live` | Webapp chargee et aucun thread en interblocage ; ne depend pas de la base, pour qu'une base indisponible ne redemarre pas toutes les instances |
 | `WebappStartupCheck` | `@Startup` | `/health/started` | V rifie `AppInit.isWebappSuccessfullyLoaded()` au d marrage |
 
 ## Configuration
@@ -82,6 +82,6 @@ src/java/fr/paris/lutece/plugins/health/
   check/
     AbstractDatabaseCheck.java      -- Logique DB partag e avec timeout
     DatabaseReadinessCheck.java     -- @Readiness
-    DatabaseLivenessCheck.java      -- @Liveness
+    ApplicationLivenessCheck.java   -- @Liveness (webapp chargee, pas d'interblocage)
     WebappStartupCheck.java         -- @Startup
 ```
