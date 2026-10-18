@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import org.eclipse.microprofile.health.HealthCheckResponse;
@@ -77,6 +78,20 @@ class DatabaseCheckExecutorTest
 
         check.shutdown( );
         assertTrue( executor.isShutdown( ) );
+    }
+
+    @Test
+    void testNoDetailsInResponse( )
+    {
+        DatabaseReadinessCheck check = new DatabaseReadinessCheck( );
+        check.init( );
+
+        // The probe is anonymous: neither the query, nor the response time, nor the error message in the response
+        HealthCheckResponse response = check.call( );
+        assertEquals( HealthCheckResponse.Status.DOWN, response.getStatus( ) );
+        assertTrue( response.getData( ).map( Map::isEmpty ).orElse( true ) );
+
+        check.shutdown( );
     }
 
     @Test

@@ -52,6 +52,7 @@ import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 
+import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.util.sql.DAOUtil;
 
 /**
@@ -137,46 +138,43 @@ abstract class AbstractDatabaseCheck implements HealthCheck
             return builder.down( ).withData( "error", "Health check stopped" ).build( );
         }
 
+        // The probes are anonymous: the response only gives the status, the query, the response time and the errors are logged
         try
         {
             boolean reachable = future.get( _lTimeoutMs, TimeUnit.MILLISECONDS );
 
             long durationMs = ( System.nanoTime( ) - start ) / 1_000_000;
+            AppLogService.debug( "Health check {} : query '{}' answered in {} ms", getCheckName( ), _strValidationQuery, durationMs );
 
-            return builder.status( reachable )
-                          .withData( "responseTimeMs", durationMs )
-                          .withData( "validationQuery", _strValidationQuery )
-                          .build( );
+            if ( !reachable )
+            {
+                AppLogService.error( "Health check {} : query '{}' returned no row", getCheckName( ), _strValidationQuery );
+            }
+
+            return builder.status( reachable ).build( );
         }
         catch( TimeoutException e )
         {
             future.cancel( true );
 
-            long durationMs = ( System.nanoTime( ) - start ) / 1_000_000;
+            AppLogService.error( "Health check {} : query '{}' timed out after {} ms", getCheckName( ), _strValidationQuery, _lTimeoutMs );
 
-            return builder.down( )
-                          .withData( "responseTimeMs", durationMs )
-                          .withData( "error", "Database query timed out after " + _lTimeoutMs + "ms" )
-                          .build( );
+            return builder.down( ).build( );
         }
         catch( ExecutionException e )
         {
             long durationMs = ( System.nanoTime( ) - start ) / 1_000_000;
 
-            String message = e.getCause( ) != null ? e.getCause( ).getMessage( ) : e.getMessage( );
+            AppLogService.error( "Health check {} : query '{}' failed after {} ms", getCheckName( ), _strValidationQuery, durationMs,
+                    e.getCause( ) != null ? e.getCause( ) : e );
 
-            return builder.down( )
-                          .withData( "responseTimeMs", durationMs )
-                          .withData( "error", message )
-                          .build( );
+            return builder.down( ).build( );
         }
         catch( InterruptedException e )
         {
             Thread.currentThread( ).interrupt( );
 
-            return builder.down( )
-                          .withData( "error", "Health check interrupted" )
-                          .build( );
+            return builder.down( ).build( );
         }
     }
 }
