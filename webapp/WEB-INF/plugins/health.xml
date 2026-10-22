@@ -9,7 +9,7 @@
     <description>plugin.health.module.description</description>
     <provider>plugin.health.module.provider</provider>
     <provider-url>https://lutece.paris.fr</provider-url>
-    <icon-url>images/admin/skin/plugins/health/health_48x48.png</icon-url>
+    <icon-url>images/admin/skin/plugins/rest/modules/healthcheck/health_48x48.png</icon-url>
     <copyright>(c) 2026 VDP</copyright>
     <db-pool-required>1</db-pool-required>
     
